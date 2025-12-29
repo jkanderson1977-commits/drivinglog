@@ -22,6 +22,7 @@
             background: #f5f5f7;
             color: #1d1d1f;
             min-height: 100vh;
+            padding-bottom: 20px;
         }
         
         .header {
@@ -207,6 +208,110 @@
             accent-color: #1a5276;
         }
         
+        /* Skills Selection Styles */
+        .skills-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        .skills-category {
+            border-bottom: 1px solid #eee;
+        }
+        
+        .skills-category:last-child {
+            border-bottom: none;
+        }
+        
+        .skills-category-header {
+            background: #f8f9fa;
+            padding: 10px 12px;
+            font-weight: 600;
+            font-size: 0.85em;
+            color: #1a5276;
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .skills-category-header:hover {
+            background: #e9ecef;
+        }
+        
+        .skills-category-header .toggle {
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        .skills-list {
+            padding: 8px 12px;
+        }
+        
+        .skill-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            gap: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .skill-item:last-child {
+            border-bottom: none;
+        }
+        
+        .skill-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #1a5276;
+            flex-shrink: 0;
+        }
+        
+        .skill-item label {
+            font-size: 0.9em;
+            color: #333;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .selected-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            min-height: 30px;
+        }
+        
+        .selected-skill-tag {
+            background: #e8f4fd;
+            color: #1a5276;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .selected-skill-tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+        
+        .selected-skill-tag .remove:hover {
+            opacity: 1;
+        }
+        
+        .skills-summary {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
         .btn {
             width: 100%;
             padding: 14px;
@@ -238,6 +343,12 @@
             color: white;
             padding: 8px 12px;
             font-size: 0.85em;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.8em;
+            width: auto;
         }
         
         .log-entry {
@@ -272,6 +383,21 @@
         .log-entry-details {
             font-size: 0.9em;
             color: #666;
+        }
+        
+        .log-entry-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        
+        .log-entry-skills .skill-tag {
+            background: #f0f0f0;
+            color: #555;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75em;
         }
         
         .log-entry-tags {
@@ -329,22 +455,6 @@
             font-size: 0.9em;
         }
         
-        .driver-info-display {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-        
-        .driver-info-display p {
-            margin: 5px 0;
-            font-size: 0.9em;
-        }
-        
-        .driver-info-display strong {
-            color: #1a5276;
-        }
-        
         .toast {
             position: fixed;
             bottom: 30px;
@@ -362,6 +472,20 @@
         
         .toast.show {
             opacity: 1;
+        }
+        
+        .clear-skills-btn {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 0.85em;
+            cursor: pointer;
+            padding: 5px 10px;
+            margin-top: 5px;
+        }
+        
+        .clear-skills-btn:hover {
+            color: #dc3545;
         }
     </style>
 </head>
@@ -422,10 +546,21 @@
                 <label>Route / Locations</label>
                 <input type="text" id="entry-route" placeholder="e.g., Home to school and back">
             </div>
+            
             <div class="form-group">
                 <label>Skills Practiced</label>
-                <textarea id="entry-skills" rows="2" placeholder="e.g., Parking, highway merging, left turns"></textarea>
+                <div class="skills-container" id="skills-container">
+                    <!-- Skills will be populated by JavaScript -->
+                </div>
+                <div class="selected-skills" id="selected-skills-display"></div>
+                <button type="button" class="clear-skills-btn" onclick="clearAllSkills()">Clear all skills</button>
             </div>
+            
+            <div class="form-group">
+                <label>Additional Notes</label>
+                <textarea id="entry-notes" rows="2" placeholder="Any other observations or comments"></textarea>
+            </div>
+            
             <div class="form-group">
                 <label>Conditions</label>
                 <div class="checkbox-group">
@@ -506,6 +641,80 @@
     <div class="toast" id="toast"></div>
     
     <script>
+        // Skills categories and items
+        const skillsData = {
+            "Basic Vehicle Control": [
+                "Starting & stopping smoothly",
+                "Steering control",
+                "Mirror & seat adjustment",
+                "Turn signals",
+                "Headlights & wipers",
+                "Accelerating smoothly",
+                "Braking smoothly",
+                "Speed control"
+            ],
+            "Parking": [
+                "Straight-in parking",
+                "Backing up",
+                "Parallel parking",
+                "Angle parking",
+                "Hill parking (uphill)",
+                "Hill parking (downhill)",
+                "Parking garage",
+                "Tight spaces"
+            ],
+            "Turns & Intersections": [
+                "Right turns",
+                "Left turns",
+                "Unprotected left turns",
+                "U-turns",
+                "Four-way stops",
+                "Traffic lights",
+                "Yield signs",
+                "Roundabouts"
+            ],
+            "Lane Changes & Merging": [
+                "Checking mirrors",
+                "Checking blind spots",
+                "Signaling lane changes",
+                "Highway merging",
+                "Highway exiting",
+                "Following distance"
+            ],
+            "Highway Driving": [
+                "Entering highway",
+                "Maintaining highway speed",
+                "Passing other vehicles",
+                "Being passed",
+                "Exiting highway",
+                "Multi-lane navigation"
+            ],
+            "Special Conditions": [
+                "Night driving",
+                "Rain/wet roads",
+                "Heavy traffic",
+                "Light traffic",
+                "Rural roads",
+                "City driving",
+                "School zones",
+                "Construction zones",
+                "Fog conditions",
+                "Snow/ice conditions"
+            ],
+            "Defensive Driving": [
+                "Scanning intersections",
+                "Anticipating hazards",
+                "Emergency braking",
+                "Avoiding distractions",
+                "Sharing road with trucks",
+                "Sharing road with motorcycles",
+                "Pedestrian awareness",
+                "Bicycle awareness"
+            ]
+        };
+        
+        let selectedSkills = [];
+        
         // Initialize
         let entries = JSON.parse(localStorage.getItem('drivingLog') || '[]');
         let driverInfo = JSON.parse(localStorage.getItem('driverInfo') || '{}');
@@ -519,6 +728,93 @@
         if (driverInfo.permitIssue) document.getElementById('permit-issue').value = driverInfo.permitIssue;
         if (driverInfo.permitExpire) document.getElementById('permit-expire').value = driverInfo.permitExpire;
         if (driverInfo.supervisor) document.getElementById('entry-supervisor').value = driverInfo.supervisor;
+        
+        // Build skills UI
+        function buildSkillsUI() {
+            const container = document.getElementById('skills-container');
+            container.innerHTML = '';
+            
+            for (const [category, skills] of Object.entries(skillsData)) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'skills-category';
+                
+                const header = document.createElement('div');
+                header.className = 'skills-category-header';
+                header.innerHTML = `<span>${category}</span><span class="toggle">▼</span>`;
+                header.onclick = () => {
+                    const list = categoryDiv.querySelector('.skills-list');
+                    const toggle = header.querySelector('.toggle');
+                    if (list.style.display === 'none') {
+                        list.style.display = 'block';
+                        toggle.textContent = '▼';
+                    } else {
+                        list.style.display = 'none';
+                        toggle.textContent = '▶';
+                    }
+                };
+                
+                const skillsList = document.createElement('div');
+                skillsList.className = 'skills-list';
+                
+                skills.forEach(skill => {
+                    const skillItem = document.createElement('div');
+                    skillItem.className = 'skill-item';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `skill-${skill.replace(/[^a-zA-Z0-9]/g, '-')}`;
+                    checkbox.value = skill;
+                    checkbox.onchange = () => toggleSkill(skill, checkbox.checked);
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = checkbox.id;
+                    label.textContent = skill;
+                    
+                    skillItem.appendChild(checkbox);
+                    skillItem.appendChild(label);
+                    skillsList.appendChild(skillItem);
+                });
+                
+                categoryDiv.appendChild(header);
+                categoryDiv.appendChild(skillsList);
+                container.appendChild(categoryDiv);
+            }
+        }
+        
+        function toggleSkill(skill, isChecked) {
+            if (isChecked) {
+                if (!selectedSkills.includes(skill)) {
+                    selectedSkills.push(skill);
+                }
+            } else {
+                selectedSkills = selectedSkills.filter(s => s !== skill);
+            }
+            updateSelectedSkillsDisplay();
+        }
+        
+        function updateSelectedSkillsDisplay() {
+            const display = document.getElementById('selected-skills-display');
+            if (selectedSkills.length === 0) {
+                display.innerHTML = '<span class="skills-summary">No skills selected</span>';
+            } else {
+                display.innerHTML = selectedSkills.map(skill => 
+                    `<span class="selected-skill-tag">${skill}<span class="remove" onclick="removeSkill('${skill.replace(/'/g, "\\'")}')">&times;</span></span>`
+                ).join('');
+            }
+        }
+        
+        function removeSkill(skill) {
+            selectedSkills = selectedSkills.filter(s => s !== skill);
+            const checkbox = document.querySelector(`input[value="${skill}"]`);
+            if (checkbox) checkbox.checked = false;
+            updateSelectedSkillsDisplay();
+        }
+        
+        function clearAllSkills() {
+            selectedSkills = [];
+            document.querySelectorAll('.skills-container input[type="checkbox"]').forEach(cb => cb.checked = false);
+            updateSelectedSkillsDisplay();
+        }
         
         // Auto-calculate hours when times change
         document.getElementById('entry-start').addEventListener('change', calculateHours);
@@ -558,7 +854,8 @@
                 endTime: document.getElementById('entry-end').value,
                 hours: parseFloat(document.getElementById('entry-hours').value) || 0,
                 route: document.getElementById('entry-route').value,
-                skills: document.getElementById('entry-skills').value,
+                skills: [...selectedSkills],
+                notes: document.getElementById('entry-notes').value,
                 night: document.getElementById('entry-night').checked,
                 weather: document.getElementById('entry-weather').checked,
                 supervisor: document.getElementById('entry-supervisor').value
@@ -584,9 +881,10 @@
             document.getElementById('entry-end').value = '';
             document.getElementById('entry-hours').value = '';
             document.getElementById('entry-route').value = '';
-            document.getElementById('entry-skills').value = '';
+            document.getElementById('entry-notes').value = '';
             document.getElementById('entry-night').checked = false;
             document.getElementById('entry-weather').checked = false;
+            clearAllSkills();
             
             updateProgress();
             showToast('Entry saved!');
@@ -636,9 +934,14 @@
                     <div class="log-entry-details">
                         ${e.startTime && e.endTime ? `${formatTime(e.startTime)} - ${formatTime(e.endTime)}<br>` : ''}
                         ${e.route ? `📍 ${e.route}<br>` : ''}
-                        ${e.skills ? `✓ ${e.skills}<br>` : ''}
                         ${e.supervisor ? `👤 ${e.supervisor}` : ''}
+                        ${e.notes ? `<br>📝 ${e.notes}` : ''}
                     </div>
+                    ${e.skills && e.skills.length > 0 ? `
+                        <div class="log-entry-skills">
+                            ${e.skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
+                        </div>
+                    ` : ''}
                     ${e.night || e.weather ? `
                         <div class="log-entry-tags">
                             ${e.night ? '<span class="tag tag-night">🌙 Night</span>' : ''}
@@ -693,14 +996,15 @@
                 return;
             }
             
-            const headers = ['Date', 'Start Time', 'End Time', 'Hours', 'Route', 'Skills Practiced', 'Night Driving', 'Bad Weather', 'Supervisor'];
+            const headers = ['Date', 'Start Time', 'End Time', 'Hours', 'Route', 'Skills Practiced', 'Notes', 'Night Driving', 'Bad Weather', 'Supervisor'];
             const rows = entries.map(e => [
                 e.date,
                 e.startTime || '',
                 e.endTime || '',
                 e.hours,
                 `"${(e.route || '').replace(/"/g, '""')}"`,
-                `"${(e.skills || '').replace(/"/g, '""')}"`,
+                `"${(e.skills ? e.skills.join('; ') : '').replace(/"/g, '""')}"`,
+                `"${(e.notes || '').replace(/"/g, '""')}"`,
                 e.night ? 'Yes' : 'No',
                 e.weather ? 'Yes' : 'No',
                 `"${(e.supervisor || '').replace(/"/g, '""')}"`
@@ -751,6 +1055,8 @@
         }
         
         // Initial render
+        buildSkillsUI();
+        updateSelectedSkillsDisplay();
         updateProgress();
         
         // Register service worker for offline support
