@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Drive Log">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="manifest" href="manifest.json">
-    <title>Natalie Anderson Driving Log</title>
+    <title>Natalie's Driving Log</title>
     <style>
         * {
             box-sizing: border-box;
@@ -206,6 +206,28 @@
             width: 22px;
             height: 22px;
             accent-color: #1a5276;
+            -webkit-appearance: none;
+            appearance: none;
+            border: 2px solid #1a5276;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .checkbox-item input[type="checkbox"]:checked {
+            background: #1a5276;
+        }
+        
+        .checkbox-item input[type="checkbox"]:checked::after {
+            content: '✓';
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
         
         /* Skills Selection Styles */
@@ -264,10 +286,32 @@
         }
         
         .skill-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             accent-color: #1a5276;
             flex-shrink: 0;
+            -webkit-appearance: none;
+            appearance: none;
+            border: 2px solid #1a5276;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .skill-item input[type="checkbox"]:checked {
+            background: #1a5276;
+        }
+        
+        .skill-item input[type="checkbox"]:checked::after {
+            content: '✓';
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
         
         .skill-item label {
