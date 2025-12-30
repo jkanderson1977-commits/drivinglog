@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Drive Log">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="manifest" href="manifest.json">
-    <title>Natalie's Driving Log</title>
+    <title>PA Driving Log</title>
     <style>
         * {
             box-sizing: border-box;
@@ -535,7 +535,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🚗 Natalie's Driving Log</h1>
+        <h1>🚗 PA Driving Log</h1>
         <p>65 hrs total • 10 hrs night • 5 hrs bad weather</p>
     </div>
     
@@ -634,7 +634,8 @@
             </div>
         </div>
         <div class="export-section">
-            <button class="btn btn-secondary" onclick="exportCSV()">📥 Export to CSV</button>
+            <button class="btn btn-primary" onclick="emailCSV()">📧 Email Log to Jeremy</button>
+            <button class="btn btn-secondary" onclick="exportCSV()">📥 Download CSV</button>
         </div>
     </div>
     
@@ -665,7 +666,8 @@
             <div class="info-box">
                 Your data is stored locally on this device. Export regularly to keep a backup.
             </div>
-            <button class="btn btn-secondary" onclick="exportCSV()">📥 Export All Data to CSV</button>
+            <button class="btn btn-primary" onclick="emailCSV()">📧 Email Log to Jeremy</button>
+            <button class="btn btn-secondary" onclick="exportCSV()">📥 Download CSV</button>
             <button class="btn btn-danger" style="width: 100%; margin-top: 10px;" onclick="confirmClearData()">🗑️ Clear All Data</button>
         </div>
         
@@ -1034,12 +1036,7 @@
             showToast('Driver info saved!');
         }
         
-        function exportCSV() {
-            if (entries.length === 0) {
-                showToast('No entries to export');
-                return;
-            }
-            
+        function generateCSVContent() {
             const headers = ['Date', 'Start Time', 'End Time', 'Hours', 'Route', 'Skills Practiced', 'Notes', 'Night Driving', 'Bad Weather', 'Supervisor'];
             const rows = entries.map(e => [
                 e.date,
@@ -1070,6 +1067,17 @@
             csv += headers.join(',') + '\n';
             csv += rows.map(r => r.join(',')).join('\n');
             
+            return { csv, total, night, weather };
+        }
+        
+        function exportCSV() {
+            if (entries.length === 0) {
+                showToast('No entries to export');
+                return;
+            }
+            
+            const { csv } = generateCSVContent();
+            
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1078,6 +1086,36 @@
             a.click();
             URL.revokeObjectURL(url);
             showToast('CSV exported!');
+        }
+        
+        function emailCSV() {
+            if (entries.length === 0) {
+                showToast('No entries to export');
+                return;
+            }
+            
+            const { csv, total, night, weather } = generateCSVContent();
+            const driverName = driverInfo.name || 'Student Driver';
+            const supervisorName = driverInfo.supervisor || 'Supervisor';
+            const date = new Date().toLocaleDateString();
+            
+            const subject = encodeURIComponent(`Driving Log Update - ${driverName} - ${date}`);
+            const body = encodeURIComponent(
+`Driving Log Export for ${driverName}
+Date: ${date}
+Submitted by: ${supervisorName}
+
+PROGRESS SUMMARY:
+• Total Hours: ${total.toFixed(1)} / 65 required
+• Night Hours: ${night.toFixed(1)} / 10 required  
+• Bad Weather Hours: ${weather.toFixed(1)} / 5 required
+
+DATA:
+${csv}
+`);
+            
+            window.location.href = `mailto:jkanderson1977@gmail.com?subject=${subject}&body=${body}`;
+            showToast('Opening mail app...');
         }
         
         function confirmClearData() {
